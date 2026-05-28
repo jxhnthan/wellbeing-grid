@@ -1,278 +1,258 @@
 import React, { useState } from 'react';
-import { departments, wellbeingMetrics } from './stateData';
-
-function compositeScore(metrics) {
-  const w = { satisfaction: 0.25, engagement: 0.25, workload: -0.15, burnout: -0.2, support: 0.15 };
-  let score = 0;
-  Object.keys(w).forEach((k) => {
-    score += w[k] > 0 ? w[k] * metrics[k] : w[k] * (100 - metrics[k]);
-  });
-  return Math.round(score + 40);
-}
-
-function riskTier(score) {
-  if (score >= 70) return { label: 'Healthy', color: '#22c55e' };
-  if (score >= 50) return { label: 'Moderate', color: '#eab308' };
-  return { label: 'At risk', color: '#ef4444' };
-}
+import { departments, metrics } from './stateData';
 
 const ranked = departments
-  .map((d) => ({
-    ...d,
-    score: compositeScore(wellbeingMetrics[d.abbr]),
-  }))
-  .sort((a, b) => a.score - b.score);
+  .map((d) => {
+    const m = metrics[d.abbr];
+    const composite = Math.round(
+      (m.satisfaction + m.engagement + (100 - m.workload) + (100 - m.burnout) + m.support) / 5
+    );
+    return { ...d, composite, metrics: m };
+  })
+  .sort((a, b) => a.composite - b.composite);
 
-const atRisk = ranked.filter((d) => d.score < 50).length;
-const moderate = ranked.filter((d) => d.score >= 50 && d.score < 70).length;
-const healthy = ranked.filter((d) => d.score >= 70).length;
+const highRisk = ranked.filter((d) => d.composite < 45);
+const moderate = ranked.filter((d) => d.composite >= 45 && d.composite < 65);
+const healthy = ranked.filter((d) => d.composite >= 65);
 
-const signals = [
+const predictions = [
   {
-    id: 1,
+    title: 'Burnout cluster forming in STEM departments',
+    description: 'Workload and after-hours activity signals in ECE, BME, and MSE suggest rising burnout risk over the next 8 weeks.',
     severity: 'high',
-    title: 'Burnout risk elevated in 3 departments',
-    description: 'Burnout indicators have risen 12% over the past quarter in departments with high workload and low support access scores.',
-    action: 'Review workload distribution and consider targeted wellbeing interventions for flagged departments.',
+    action: 'Review workload distribution and consider temporary resource allocation.',
   },
   {
-    id: 2,
+    title: 'Engagement decline in administrative units',
+    description: 'Survey response rates dropped 18% across FIN, REG, and LEG. Engagement scores trending downward for 3 consecutive months.',
     severity: 'medium',
-    title: 'Engagement declining in admin units',
-    description: 'Administration and support units show a consistent downward trend in engagement over the past 6 months.',
-    action: 'Schedule pulse check-ins with admin leadership and review recent organisational changes.',
+    action: 'Schedule targeted pulse survey and team retrospectives.',
   },
   {
-    id: 3,
+    title: 'Positive trend in Faculty of Science',
+    description: 'Satisfaction and support scores improved 12% since last quarter. Turnover rate decreased to 4.2%.',
     severity: 'low',
-    title: 'Strong satisfaction in research clusters',
-    description: 'Research centres and programmes report the highest satisfaction and support access scores across all categories.',
-    action: 'Document and share best practices from high-performing research units.',
+    action: 'Document and share practices that contributed to improvement.',
   },
 ];
 
-function severityStyle(sev) {
-  if (sev === 'high') return { bg: '#fef2f2', color: '#ef4444', border: '#fecaca' };
-  if (sev === 'medium') return { bg: '#fffbeb', color: '#eab308', border: '#fde68a' };
-  return { bg: '#f0fdf4', color: '#22c55e', border: '#bbf7d0' };
-}
+const severityConfig = {
+  high:   { dot: '#cf222e', label: 'High risk',  bg: '#fef2f2' },
+  medium: { dot: '#d97706', label: 'Moderate',   bg: '#fffbeb' },
+  low:    { dot: '#22863a', label: 'Positive',   bg: '#f0fdf4' },
+};
 
 export default function Insights() {
-  const [expandedSignal, setExpandedSignal] = useState(null);
+  const [expandedIdx, setExpandedIdx] = useState(null);
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto' }}>
-      {/* Summary row */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 16,
-          marginBottom: 28,
-        }}
-      >
+    <div style={{ maxWidth: 800, margin: '0 auto' }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: '#003D7C', marginBottom: 4 }}>
+        Insights
+      </div>
+      <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 28 }}>
+        Risk signals and trends based on cross-source analysis
+      </div>
+
+      {/* Summary bar — single card, 3 sections inline */}
+      <div style={{
+        display: 'flex',
+        background: '#fff',
+        border: '1px solid #e5e7eb',
+        borderRadius: 10,
+        marginBottom: 28,
+        overflow: 'hidden',
+      }}>
         {[
-          { label: 'At risk', count: atRisk, color: '#ef4444' },
-          { label: 'Moderate', count: moderate, color: '#eab308' },
-          { label: 'Healthy', count: healthy, color: '#22c55e' },
-        ].map((tier) => (
+          { label: 'Needs attention', count: highRisk.length, color: '#cf222e' },
+          { label: 'Moderate', count: moderate.length, color: '#d97706' },
+          { label: 'Healthy', count: healthy.length, color: '#22863a' },
+        ].map((item, idx) => (
           <div
-            key={tier.label}
+            key={item.label}
             style={{
-              background: '#fff',
-              border: '1px solid #e5e7eb',
-              borderRadius: 10,
-              padding: '20px 24px',
+              flex: 1,
+              padding: '18px 24px',
+              borderRight: idx < 2 ? '1px solid #f3f4f6' : 'none',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              gap: 14,
             }}
           >
+            <div style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: item.color,
+              flexShrink: 0,
+            }} />
             <div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: '#1a1a1a' }}>{tier.count}</div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: '#9ca3af',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  marginTop: 2,
-                }}
-              >
-                departments
-              </div>
-            </div>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: tier.color,
-                backgroundColor: tier.color + '14',
-                padding: '4px 12px',
-                borderRadius: 20,
-              }}
-            >
-              {tier.label}
+              <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>{item.label}</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: item.color }}>{item.count}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-        {/* Left — ranked list */}
-        <div
-          style={{
-            background: '#fff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            padding: '24px 28px',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#003D7C',
-              marginBottom: 4,
-            }}
-          >
-            Department rankings
-          </div>
-          <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 20 }}>
-            Sorted by composite wellbeing score, lowest first
+      {/* Two-column: ranking table + signals */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+
+        {/* Left — Department ranking as a table */}
+        <div style={{
+          background: '#fff',
+          border: '1px solid #e5e7eb',
+          borderRadius: 10,
+          overflow: 'hidden',
+        }}>
+          {/* Table header */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '28px 50px 1fr 60px',
+            padding: '10px 18px',
+            borderBottom: '1px solid #f3f4f6',
+            alignItems: 'center',
+          }}>
+            <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>#</span>
+            <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Dept</span>
+            <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Wellbeing</span>
+            <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'right' }}>Score</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {ranked.slice(0, 12).map((dept, i) => {
-              const tier = riskTier(dept.score);
-              return (
-                <div
-                  key={dept.abbr}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '20px 48px 1fr 40px',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '10px 0',
-                    borderBottom: i < 11 ? '1px solid #f9fafb' : 'none',
-                  }}
-                >
-                  <span style={{ fontSize: 10, color: '#c0c0c0', fontWeight: 500 }}>
-                    {i + 1}
-                  </span>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
-                    {dept.abbr}
-                  </span>
-                  <div
-                    style={{
+          {/* Rows */}
+          {ranked.slice(0, 10).map((dept, idx) => {
+            const barColor = dept.composite < 45 ? '#cf222e' : dept.composite < 65 ? '#d97706' : '#22863a';
+            return (
+              <div
+                key={dept.abbr}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '28px 50px 1fr 60px',
+                  padding: '10px 18px',
+                  borderBottom: idx < 9 ? '1px solid #f9f9f7' : 'none',
+                  alignItems: 'center',
+                  transition: 'background 0.15s',
+                  cursor: 'default',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#fafaf8'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
+              >
+                <span style={{ fontSize: 11, color: '#b0b0b0', fontWeight: 600 }}>{idx + 1}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{dept.abbr}</span>
+                <div style={{ paddingRight: 16 }}>
+                  <div style={{ height: 4, borderRadius: 2, background: '#f3f4f6' }}>
+                    <div style={{
                       height: 4,
-                      backgroundColor: '#f3f4f6',
                       borderRadius: 2,
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: '100%',
-                        width: dept.score + '%',
-                        backgroundColor: tier.color,
-                        borderRadius: 2,
-                      }}
-                    />
+                      width: dept.composite + '%',
+                      background: barColor,
+                    }} />
                   </div>
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: tier.color,
-                      textAlign: 'right',
-                    }}
-                  >
-                    {dept.score}
-                  </span>
                 </div>
-              );
-            })}
-          </div>
+                <span style={{ fontSize: 13, fontWeight: 700, color: barColor, textAlign: 'right' }}>
+                  {dept.composite}
+                </span>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Right — signals */}
-        <div
-          style={{
-            background: '#fff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            padding: '24px 28px',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#003D7C',
-              marginBottom: 4,
-            }}
-          >
-            Predictive signals
-          </div>
-          <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 20 }}>
-            AI-generated risk signals from aggregated data
+        {/* Right — Prediction signals */}
+        <div>
+          <div style={{
+            fontSize: 10,
+            fontWeight: 600,
+            color: '#9ca3af',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            marginBottom: 12,
+            padding: '0 2px',
+          }}>
+            Signals
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {signals.map((signal) => {
-              const sty = severityStyle(signal.severity);
-              const isExpanded = expandedSignal === signal.id;
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {predictions.map((pred, idx) => {
+              const s = severityConfig[pred.severity];
+              const isExpanded = expandedIdx === idx;
+
               return (
                 <div
-                  key={signal.id}
-                  onClick={() => setExpandedSignal(isExpanded ? null : signal.id)}
+                  key={idx}
+                  onClick={() => setExpandedIdx(isExpanded ? null : idx)}
                   style={{
-                    border: '1px solid ' + sty.border,
-                    borderRadius: 8,
-                    padding: '14px 16px',
+                    background: '#fff',
+                    border: '1px solid ' + (isExpanded ? '#d1d5db' : '#e5e7eb'),
+                    borderRadius: 10,
+                    padding: '16px 18px',
                     cursor: 'pointer',
-                    backgroundColor: isExpanded ? sty.bg : '#fff',
-                    transition: 'background-color 0.2s',
+                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                    boxShadow: isExpanded ? '0 2px 8px rgba(0,0,0,0.04)' : 'none',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                    <span
-                      style={{
-                        fontSize: 9,
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color: sty.color,
-                        backgroundColor: sty.bg,
-                        padding: '2px 8px',
-                        borderRadius: 4,
-                      }}
-                    >
-                      {signal.severity}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', lineHeight: 1.4 }}>
-                    {signal.title}
-                  </div>
-                  {isExpanded && (
-                    <div style={{ marginTop: 10 }}>
-                      <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5, marginBottom: 10 }}>
-                        {signal.description}
+                  {/* Signal header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flex: 1 }}>
+                      <div style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        background: s.dot,
+                        marginTop: 5,
+                        flexShrink: 0,
+                      }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', lineHeight: 1.4 }}>
+                          {pred.title}
+                        </div>
+                        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, lineHeight: 1.5 }}>
+                          {pred.description}
+                        </div>
                       </div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: '#003D7C',
-                          fontWeight: 500,
-                          backgroundColor: '#f0f4f8',
-                          padding: '10px 14px',
-                          borderRadius: 6,
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        Recommended: {signal.action}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginLeft: 12 }}>
+                      <span style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: s.dot,
+                        background: s.bg,
+                        padding: '3px 8px',
+                        borderRadius: 4,
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {s.label}
+                      </span>
+                      <span style={{
+                        fontSize: 14,
+                        color: '#b0b0b0',
+                        transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s',
+                        display: 'inline-block',
+                      }}>
+                        &#8964;
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Expanded action */}
+                  {isExpanded && (
+                    <div style={{
+                      marginTop: 14,
+                      paddingTop: 14,
+                      borderTop: '1px solid #f3f4f6',
+                      marginLeft: 18,
+                    }}>
+                      <div style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: '#9ca3af',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.06em',
+                        marginBottom: 6,
+                      }}>
+                        Recommended action
+                      </div>
+                      <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
+                        {pred.action}
                       </div>
                     </div>
                   )}

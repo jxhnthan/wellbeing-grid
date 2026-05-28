@@ -1,90 +1,76 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import TileGridMap from './TileGridMap';
-import Legend from './Legend';
 import Tooltip from './Tooltip';
+import Legend from './Legend';
 import DetailPanel from './DetailPanel';
 import DataOrchestrator from './DataOrchestrator';
 import DataFlow from './DataFlow';
 import Insights from './Insights';
-import './App.css';
+import { metrics } from './stateData';
 
 const tabs = [
-  { id: 'grid', label: 'Wellbeing Grid' },
-  { id: 'sources', label: 'Data Sources' },
-  { id: 'flow', label: 'Data Flow' },
-  { id: 'insights', label: 'Insights' },
+  { key: 'grid', label: 'Dashboard' },
+  { key: 'sources', label: 'Data Sources' },
+  { key: 'flow', label: 'Data Flow' },
+  { key: 'insights', label: 'Insights' },
 ];
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('grid');
   const [hovered, setHovered] = useState(null);
-  const [selected, setSelected] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [selected, setSelected] = useState(null);
 
-  const handleHover = useCallback((abbr) => setHovered(abbr), []);
-  const handleLeave = useCallback(() => setHovered(null), []);
-  const handleClick = useCallback(
-    (abbr) => setSelected((prev) => (prev === abbr ? null : abbr)),
-    []
-  );
-
-  const handleMouseMove = useCallback((e) => {
-    setMousePos({ x: e.clientX, y: e.clientY });
-  }, []);
+  const handleHover = (dept) => setHovered(dept);
+  const handleLeave = () => setHovered(null);
+  const handleClick = (abbr) => setSelected(selected === abbr ? null : abbr);
 
   return (
     <div
-      onMouseMove={handleMouseMove}
-      style={{
-        minHeight: '100vh',
-        padding: '48px 32px 64px',
-        maxWidth: 960,
-        margin: '0 auto',
-      }}
+      style={{ minHeight: '100vh', padding: '48px 32px' }}
+      onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
     >
       {/* Header */}
-      <div style={{ marginBottom: 36 }}>
-        <h1
-          style={{
-            fontSize: 22,
-            fontWeight: 700,
-            color: '#003D7C',
-            letterSpacing: '-0.02em',
-            marginBottom: 4,
-          }}
-        >
+      <div style={{ maxWidth: 800, margin: '0 auto 36px' }}>
+        <div style={{
+          fontSize: 24,
+          fontWeight: 700,
+          color: '#003D7C',
+          letterSpacing: '-0.02em',
+        }}>
           Wellbeing Grid
-        </h1>
-        <p style={{ fontSize: 13, color: '#9ca3af' }}>
-          Live predictive wellbeing workflow — National University of Singapore
-        </p>
+        </div>
+        <div style={{ fontSize: 14, color: '#9ca3af', marginTop: 4 }}>
+          NUS department wellbeing at a glance
+        </div>
       </div>
 
-      {/* Tab navigation */}
-      <div
-        style={{
-          display: 'inline-flex',
-          background: '#f3f4f6',
-          borderRadius: 8,
-          padding: 3,
-          marginBottom: 32,
-        }}
-      >
+      {/* Tab bar */}
+      <div style={{
+        maxWidth: 800,
+        margin: '0 auto 32px',
+        display: 'flex',
+        gap: 4,
+        background: '#eeeee9',
+        borderRadius: 8,
+        padding: 4,
+        width: 'fit-content',
+      }}>
         {tabs.map((tab) => (
           <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
             style={{
-              padding: '8px 18px',
-              fontSize: 12,
-              fontWeight: 600,
-              border: 'none',
+              padding: '8px 20px',
               borderRadius: 6,
+              border: 'none',
+              fontSize: 13,
+              fontWeight: activeTab === tab.key ? 600 : 400,
+              color: activeTab === tab.key ? '#003D7C' : '#6b7280',
+              background: activeTab === tab.key ? '#fff' : 'transparent',
               cursor: 'pointer',
-              transition: 'all 0.15s',
-              background: activeTab === tab.id ? '#fff' : 'transparent',
-              color: activeTab === tab.id ? '#003D7C' : '#9ca3af',
-              boxShadow: activeTab === tab.id ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
+              transition: 'all 0.2s',
+              boxShadow: activeTab === tab.key ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
             }}
           >
             {tab.label}
@@ -92,19 +78,29 @@ export default function App() {
         ))}
       </div>
 
-      {/* Tab content */}
+      {/* Content */}
       {activeTab === 'grid' && (
-        <div>
+        <div style={{ maxWidth: 800, margin: '0 auto' }}>
           <TileGridMap
             selected={selected}
-            hovered={hovered}
             onHover={handleHover}
             onLeave={handleLeave}
             onClick={handleClick}
           />
           <Legend />
-          <Tooltip abbr={hovered} mousePos={mousePos} />
-          <DetailPanel abbr={selected} onClose={() => setSelected(null)} />
+          {hovered && (
+            <Tooltip
+              dept={hovered}
+              metrics={metrics[hovered.abbr]}
+              position={mousePos}
+            />
+          )}
+          {selected && (
+            <DetailPanel
+              abbr={selected}
+              onClose={() => setSelected(null)}
+            />
+          )}
         </div>
       )}
 

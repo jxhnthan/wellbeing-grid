@@ -23,13 +23,15 @@ export default function DataFlow() {
     return () => clearInterval(interval);
   }, []);
 
-  const engineX = 60;
-  const engineY = 130;
-  const engineW = 160;
-  const engineH = 80;
-  const sourceX = 520;
+  // Sources on LEFT, engine on RIGHT
+  const sourceX = 40;
   const sourceW = 260;
   const sourceH = 50;
+
+  const engineX = 620;
+  const engineY = 130;
+  const engineW = 170;
+  const engineH = 80;
 
   return (
     <div
@@ -43,17 +45,39 @@ export default function DataFlow() {
       }}
     >
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#003D7C' }}>Data Flow</div>
-        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: '#003D7C' }}>Data Flow</div>
+        <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>
           How data moves from institutional sources into the Wellbeing Engine
         </div>
       </div>
 
-      <svg
-        viewBox="0 0 860 360"
-        style={{ width: '100%', height: 'auto' }}
-      >
-        {/* Engine box */}
+      <svg viewBox="0 0 860 360" style={{ width: '100%', height: 'auto' }}>
+        <defs>
+          <marker
+            id="arrowOrange"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
+            <path d="M 0 1 L 9 5 L 0 9 z" fill="#EF7C00" />
+          </marker>
+          <marker
+            id="arrowGrey"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
+            <path d="M 0 1 L 9 5 L 0 9 z" fill="#d1d5db" />
+          </marker>
+        </defs>
+
+        {/* Engine box — RIGHT side */}
         <rect
           x={engineX}
           y={engineY}
@@ -67,9 +91,9 @@ export default function DataFlow() {
           y={engineY + 34}
           textAnchor="middle"
           fill="#fff"
-          fontSize={13}
+          fontSize={14}
           fontWeight={700}
-          fontFamily="Inter, sans-serif"
+          fontFamily="-apple-system, BlinkMacSystemFont, sans-serif"
         >
           Wellbeing Engine
         </text>
@@ -77,51 +101,48 @@ export default function DataFlow() {
           x={engineX + engineW / 2}
           y={engineY + 52}
           textAnchor="middle"
-          fill="rgba(255,255,255,0.6)"
-          fontSize={10}
-          fontFamily="Inter, sans-serif"
+          fill="rgba(255,255,255,0.5)"
+          fontSize={11}
+          fontFamily="-apple-system, BlinkMacSystemFont, sans-serif"
         >
           NUS Platform
         </text>
 
-        {/* Source cards and paths */}
+        {/* Source cards and paths — LEFT side flowing RIGHT */}
         {sources.map((source, i) => {
-          const sx = sourceX;
-          const sy = source.y;
           const isActive = activeIndex === i;
+          const sy = source.y;
 
-          const engineEdgeX = engineX + engineW;
-          const engineEdgeY = engineY + engineH / 2;
-          const sourceEdgeX = sx;
-          const sourceEdgeY = sy + sourceH / 2;
-          const cp1x = sourceEdgeX - 100;
-          const cp2x = engineEdgeX + 100;
+          // Path: source card right edge → engine left edge
+          const startX = sourceX + sourceW;
+          const startY = sy + sourceH / 2;
+          const endX = engineX;
+          const endY = engineY + engineH / 2;
+          const cp1x = startX + 100;
+          const cp2x = endX - 100;
 
-          /* Path goes from SOURCE → ENGINE (right to left) */
-          const pathD = 'M ' + sourceEdgeX + ' ' + sourceEdgeY +
-            ' C ' + cp1x + ' ' + sourceEdgeY +
-            ' ' + cp2x + ' ' + engineEdgeY +
-            ' ' + engineEdgeX + ' ' + engineEdgeY;
+          const pathD = 'M ' + startX + ' ' + startY +
+            ' C ' + cp1x + ' ' + startY +
+            ' ' + cp2x + ' ' + endY +
+            ' ' + endX + ' ' + endY;
 
-          /* Visual line drawn from engine to source (for consistent curve shape) */
-          const linePath = 'M ' + engineEdgeX + ' ' + engineEdgeY +
-            ' C ' + cp2x + ' ' + engineEdgeY +
-            ' ' + cp1x + ' ' + sourceEdgeY +
-            ' ' + sourceEdgeX + ' ' + sourceEdgeY;
+          // Reversed path for animateMotion (source → engine)
+          // animateMotion follows the path as drawn, which is already source → engine
 
           return (
             <g key={source.id}>
-              {/* Connection line (drawn left to right for visual consistency) */}
+              {/* Connection line */}
               <path
-                d={linePath}
+                d={pathD}
                 fill="none"
-                stroke={isActive ? '#EF7C00' : '#d1d5db'}
+                stroke={isActive ? '#EF7C00' : '#e5e7eb'}
                 strokeWidth={isActive ? 2 : 1}
                 strokeDasharray={isActive ? 'none' : '6 4'}
+                markerEnd={isActive ? 'url(#arrowOrange)' : 'url(#arrowGrey)'}
                 style={{ transition: 'stroke 0.4s, stroke-width 0.4s' }}
               />
 
-              {/* Animated dot — follows path FROM source TO engine */}
+              {/* Animated dot — flows source → engine */}
               {isActive && (
                 <circle r={4} fill="#EF7C00">
                   <animateMotion
@@ -132,38 +153,26 @@ export default function DataFlow() {
                 </circle>
               )}
 
-              {/* Arrow head pointing at engine */}
-              {isActive && (
-                <polygon
-                  points={
-                    (engineEdgeX + 1) + ',' + (engineEdgeY) + ' ' +
-                    (engineEdgeX + 10) + ',' + (engineEdgeY - 5) + ' ' +
-                    (engineEdgeX + 10) + ',' + (engineEdgeY + 5)
-                  }
-                  fill="#EF7C00"
-                />
-              )}
-
-              {/* Source card */}
+              {/* Source card — LEFT side */}
               <rect
-                x={sx}
+                x={sourceX}
                 y={sy}
                 width={sourceW}
                 height={sourceH}
                 rx={6}
-                fill={isActive ? '#fff' : '#fafafa'}
+                fill={isActive ? '#fff' : '#fafaf8'}
                 stroke={isActive ? '#003D7C' : '#e5e7eb'}
                 strokeWidth={isActive ? 1.5 : 1}
                 style={{ transition: 'all 0.3s' }}
               />
               <text
-                x={sx + sourceW / 2}
+                x={sourceX + sourceW / 2}
                 y={sy + sourceH / 2 + 4}
                 textAnchor="middle"
                 fill={isActive ? '#003D7C' : '#6b7280'}
-                fontSize={12}
-                fontWeight={isActive ? 600 : 500}
-                fontFamily="Inter, sans-serif"
+                fontSize={13}
+                fontWeight={isActive ? 600 : 400}
+                fontFamily="-apple-system, BlinkMacSystemFont, sans-serif"
               >
                 {source.label}
               </text>
@@ -185,13 +194,19 @@ export default function DataFlow() {
       >
         {steps.map((step) => (
           <div key={step.num} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 10, color: '#EF7C00', fontWeight: 600, marginBottom: 4 }}>
+            <div style={{
+              fontSize: 11,
+              color: '#EF7C00',
+              fontWeight: 600,
+              marginBottom: 4,
+              fontFamily: 'SFMono-Regular, Consolas, monospace',
+            }}>
               {step.num}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a' }}>
               {step.title}
             </div>
-            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
               {step.desc}
             </div>
           </div>

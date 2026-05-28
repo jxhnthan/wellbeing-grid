@@ -1,39 +1,28 @@
 import React from 'react';
-import { categoryColors, categoryLabels } from './stateData';
+import { categories } from './stateData';
 
 export default function Legend() {
-  const categories = Object.keys(categoryColors);
-
   return (
     <div
       style={{
         display: 'flex',
         justifyContent: 'center',
-        gap: 24,
-        marginTop: 32,
+        gap: 20,
+        marginTop: 24,
         flexWrap: 'wrap',
       }}
     >
-      {categories.map((cat) => (
-        <div
-          key={cat}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
+      {Object.values(categories).map((cat) => (
+        <div key={cat.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div
             style={{
-              width: 10,
-              height: 10,
+              width: 8,
+              height: 8,
               borderRadius: '50%',
-              backgroundColor: categoryColors[cat],
+              background: cat.color,
             }}
           />
-          <span style={{ fontSize: 12, color: '#6b7280' }}>
-            {categoryLabels[cat]}
-          </span>
+          <span style={{ fontSize: 11, color: '#6b7280' }}>{cat.label}</span>
         </div>
       ))}
     </div>

@@ -1,197 +1,149 @@
 import React from 'react';
-import { departments, wellbeingMetrics, hrMetrics } from './stateData';
+import { departments, metrics, hrData } from './stateData';
 
-const wellbeingLabels = {
-  satisfaction: 'Satisfaction',
-  engagement: 'Engagement',
-  workload: 'Workload',
-  burnout: 'Burnout risk',
-  support: 'Support access',
+const metricLabels = {
+  satisfaction: { label: 'Satisfaction', inverse: false },
+  workload:     { label: 'Workload',    inverse: true },
+  engagement:   { label: 'Engagement',  inverse: false },
+  burnout:      { label: 'Burnout',     inverse: true },
+  support:      { label: 'Support',     inverse: false },
 };
 
-const hrLabels = {
-  performanceRating: { label: 'Performance rating', suffix: ' / 5.0' },
-  medicalLeaveDays: { label: 'Avg medical leave', suffix: ' days' },
-  salaryBand: { label: 'Salary band', suffix: '' },
-  turnoverRate: { label: 'Turnover rate', suffix: '%' },
-  headcount: { label: 'Headcount', suffix: '' },
-};
-
-const isInverse = { workload: true, burnout: true };
-
-function barColor(key, value) {
-  const inv = isInverse[key];
-  if (inv) {
-    if (value >= 60) return '#ef4444';
-    if (value >= 40) return '#9ca3af';
-    return '#22c55e';
-  }
-  if (value >= 70) return '#22c55e';
-  if (value >= 45) return '#9ca3af';
-  return '#ef4444';
+function getBarColor(value, inverse) {
+  const effective = inverse ? 100 - value : value;
+  if (effective >= 65) return '#22863a';
+  if (effective >= 45) return '#9ca3af';
+  return '#cf222e';
 }
 
-function statusLabel(key, value) {
-  const inv = isInverse[key];
-  if (inv) {
-    if (value >= 60) return 'High';
-    if (value >= 40) return 'Moderate';
-    return 'Low';
-  }
-  if (value >= 70) return 'Good';
-  if (value >= 45) return 'Moderate';
-  return 'Low';
+function getStatusLabel(value, inverse) {
+  const effective = inverse ? 100 - value : value;
+  if (effective >= 65) return 'Good';
+  if (effective >= 45) return 'Moderate';
+  return 'Needs attention';
 }
 
 export default function DetailPanel({ abbr, onClose }) {
-  if (!abbr) return null;
-
   const dept = departments.find((d) => d.abbr === abbr);
-  const wm = wellbeingMetrics[abbr];
-  const hr = hrMetrics[abbr];
-  if (!dept || !wm || !hr) return null;
+  const m = metrics[abbr];
+  const hr = hrData[abbr];
+  if (!dept || !m || !hr) return null;
+
+  const composite = Math.round(
+    (m.satisfaction + m.engagement + (100 - m.workload) + (100 - m.burnout) + m.support) / 5
+  );
 
   return (
     <div
       style={{
-        maxWidth: 720,
-        margin: '32px auto 0',
+        maxWidth: 800,
+        margin: '20px auto 0',
         background: '#fff',
         border: '1px solid #e5e7eb',
         borderRadius: 12,
         padding: '28px 32px',
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: 24,
-        }}
-      >
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#003D7C' }}>
-            {dept.fullName}
-          </div>
-          <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
-            {dept.abbr} — {dept.category.charAt(0).toUpperCase() + dept.category.slice(1)}
-          </div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#003D7C' }}>{dept.fullName}</div>
+          <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>{dept.abbr} — Composite score: {composite}</div>
         </div>
         <button
           onClick={onClose}
           style={{
             background: 'none',
-            border: 'none',
-            fontSize: 18,
-            color: '#9ca3af',
+            border: '1px solid #e5e7eb',
+            borderRadius: 6,
+            padding: '6px 14px',
+            fontSize: 12,
+            color: '#6b7280',
             cursor: 'pointer',
-            padding: '0 4px',
-            lineHeight: 1,
           }}
         >
-          x
+          Close
         </button>
       </div>
 
+      {/* Two columns */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
-        {/* Wellbeing column */}
+        {/* Wellbeing metrics */}
         <div>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: '#9ca3af',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: 16,
-            }}
-          >
+          <div style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: '#9ca3af',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            marginBottom: 16,
+          }}>
             Wellbeing metrics
           </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {Object.keys(wellbeingLabels).map((key) => (
-              <div key={key}>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: 4,
-                  }}
-                >
-                  <span style={{ fontSize: 13, color: '#374151' }}>
-                    {wellbeingLabels[key]}
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>
-                      {wm[key]}
-                    </span>
-                    <span
+            {Object.entries(metricLabels).map(([key, meta]) => {
+              const value = m[key];
+              return (
+                <div key={key}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, color: '#374151' }}>{meta.label}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 11, color: '#9ca3af' }}>
+                        {getStatusLabel(value, meta.inverse)}
+                      </span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{value}</span>
+                    </div>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 3, background: '#f3f4f6' }}>
+                    <div
                       style={{
-                        fontSize: 10,
-                        color: barColor(key, wm[key]),
-                        fontWeight: 500,
+                        height: 6,
+                        borderRadius: 3,
+                        width: value + '%',
+                        background: getBarColor(value, meta.inverse),
                       }}
-                    >
-                      {statusLabel(key, wm[key])}
-                    </span>
+                    />
                   </div>
                 </div>
-                <div
-                  style={{
-                    height: 6,
-                    backgroundColor: '#f3f4f6',
-                    borderRadius: 3,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div
-                    style={{
-                      height: '100%',
-                      width: wm[key] + '%',
-                      backgroundColor: barColor(key, wm[key]),
-                      borderRadius: 3,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* HR column */}
+        {/* HR data */}
         <div>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: '#9ca3af',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: 16,
-            }}
-          >
-            HR data
+          <div style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: '#9ca3af',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            marginBottom: 16,
+          }}>
+            HR & organisational data
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {Object.keys(hrLabels).map((key) => (
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              { label: 'Headcount', value: hr.headcount },
+              { label: 'Performance rating', value: hr.performanceAvg + ' / 5.0' },
+              { label: 'Avg medical leave', value: hr.medicalLeave + ' days / yr' },
+              { label: 'Salary band', value: hr.salaryBand },
+              { label: 'Turnover rate', value: hr.turnoverPct + '%' },
+            ].map((item) => (
               <div
-                key={key}
+                key={item.label}
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  paddingBottom: 12,
+                  padding: '10px 0',
                   borderBottom: '1px solid #f3f4f6',
                 }}
               >
-                <span style={{ fontSize: 13, color: '#374151' }}>
-                  {hrLabels[key].label}
-                </span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a' }}>
-                  {hr[key]}{hrLabels[key].suffix}
-                </span>
+                <span style={{ fontSize: 13, color: '#6b7280' }}>{item.label}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{item.value}</span>
               </div>
             ))}
           </div>
