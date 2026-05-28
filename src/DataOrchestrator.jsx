@@ -3,61 +3,49 @@ import React, { useState } from 'react';
 const sources = [
   {
     name: 'Employee Engagement Surveys',
-    description: 'Pulse surveys, annual engagement scores, eNPS',
+    desc: 'Pulse surveys, annual engagement scores, eNPS',
     endpoint: '/api/v1/engagement',
     metrics: ['satisfaction', 'engagement', 'support'],
-    lastSync: '2 min ago',
   },
   {
     name: 'HR & Organisational Data',
-    description: 'Performance ratings, medical leave, salary bands, turnover',
+    desc: 'Performance ratings, medical leave, salary bands, turnover',
     endpoint: '/api/v1/hr-data',
-    metrics: ['performance', 'leave', 'salary', 'turnover'],
-    lastSync: '5 min ago',
+    metrics: ['performance', 'medical leave', 'salary', 'turnover'],
   },
   {
     name: 'Operational & Behavioural Data',
-    description: 'System usage, meeting load, after-hours activity',
+    desc: 'System usage, meeting load, after-hours activity',
     endpoint: '/api/v1/operational',
     metrics: ['workload', 'burnout', 'engagement'],
-    lastSync: '1 min ago',
   },
 ];
 
 export default function DataOrchestrator() {
-  const [syncingIdx, setSyncingIdx] = useState(null);
+  const [syncing, setSyncing] = useState({});
 
   const handleSync = (idx) => {
-    setSyncingIdx(idx);
-    setTimeout(() => setSyncingIdx(null), 2000);
+    setSyncing((prev) => ({ ...prev, [idx]: true }));
+    setTimeout(() => setSyncing((prev) => ({ ...prev, [idx]: false })), 2000);
   };
 
   const handleSyncAll = () => {
-    setSyncingIdx(0);
-    setTimeout(() => setSyncingIdx(1), 600);
-    setTimeout(() => setSyncingIdx(2), 1200);
-    setTimeout(() => setSyncingIdx(null), 2400);
+    sources.forEach((_, idx) => {
+      setTimeout(() => handleSync(idx), idx * 400);
+    });
   };
 
+  const font = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
   return (
-    <div
-      style={{
-        maxWidth: 800,
-        margin: '0 auto',
-        background: '#fff',
-        border: '1px solid #e8e8e4',
-        borderRadius: 12,
-        padding: '28px 32px',
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-      }}
-    >
+    <div style={{ maxWidth: 720, margin: '0 auto', fontFamily: font }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#003D7C', letterSpacing: '-0.02em' }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#1a1a1a', letterSpacing: '-0.02em' }}>
             Data Orchestrator
           </div>
-          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
             Live data pipeline — pulling from {sources.length} institutional sources
           </div>
         </div>
@@ -72,7 +60,7 @@ export default function DataOrchestrator() {
             fontSize: 12,
             fontWeight: 600,
             cursor: 'pointer',
-            fontFamily: 'inherit',
+            fontFamily: font,
           }}
         >
           Sync all sources
@@ -80,57 +68,49 @@ export default function DataOrchestrator() {
       </div>
 
       {/* Table */}
-      <div style={{ borderTop: '1px solid #f0f0ec' }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e2de', borderRadius: 10, overflow: 'hidden' }}>
         {/* Table header */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '2fr 1.5fr 100px 90px',
-            gap: 16,
-            padding: '10px 0',
-            borderBottom: '1px solid #f0f0ec',
+            gridTemplateColumns: '1fr 200px 100px 90px',
+            padding: '10px 20px',
+            borderBottom: '1px solid #f3f4f6',
+            background: '#fafaf8',
           }}
         >
           {['Source', 'Metrics', 'Status', ''].map((h) => (
-            <div
-              key={h}
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: '#9ca3af',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-              }}
-            >
+            <div key={h} style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               {h}
             </div>
           ))}
         </div>
 
-        {/* Table rows */}
+        {/* Rows */}
         {sources.map((source, idx) => {
-          const isSyncing = syncingIdx === idx;
+          const isSyncing = syncing[idx];
           return (
             <div
-              key={source.name}
+              key={idx}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '2fr 1.5fr 100px 90px',
-                gap: 16,
-                padding: '16px 0',
-                borderBottom: idx < sources.length - 1 ? '1px solid #f0f0ec' : 'none',
+                gridTemplateColumns: '1fr 200px 100px 90px',
+                padding: '16px 20px',
                 alignItems: 'center',
+                borderBottom: idx < sources.length - 1 ? '1px solid #f3f4f6' : 'none',
+                transition: 'background 0.2s',
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#fafaf8'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
             >
-              {/* Source info */}
+              {/* Source */}
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{source.name}</div>
-                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{source.description}</div>
-                <div style={{ fontSize: 11, color: '#b0b0b0', marginTop: 4 }}>
-                  <span style={{ fontFamily: "'SF Mono', 'Fira Code', monospace", fontSize: 10, color: '#6b7280', background: '#f7f7f5', padding: '2px 6px', borderRadius: 3 }}>
-                    {source.endpoint}
-                  </span>
-                  <span style={{ marginLeft: 8 }}>Last sync: {source.lastSync}</span>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', marginBottom: 2 }}>
+                  {source.name}
+                </div>
+                <div style={{ fontSize: 11, color: '#9ca3af' }}>{source.desc}</div>
+                <div style={{ fontSize: 10, color: '#c8c8c4', marginTop: 4, fontFamily: 'monospace' }}>
+                  {source.endpoint}
                 </div>
               </div>
 
@@ -142,8 +122,7 @@ export default function DataOrchestrator() {
                     style={{
                       fontSize: 10,
                       color: '#6b7280',
-                      background: '#f7f7f5',
-                      border: '1px solid #e8e8e4',
+                      background: '#f3f4f6',
                       padding: '2px 8px',
                       borderRadius: 4,
                     }}
@@ -157,36 +136,39 @@ export default function DataOrchestrator() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div
                   style={{
-                    width: 7,
-                    height: 7,
+                    width: 6,
+                    height: 6,
                     borderRadius: '50%',
                     background: isSyncing ? '#EF7C00' : '#22863a',
                     transition: 'background 0.3s',
                   }}
                 />
-                <span style={{ fontSize: 11, fontWeight: 500, color: isSyncing ? '#EF7C00' : '#22863a' }}>
+                <span style={{ fontSize: 11, color: isSyncing ? '#EF7C00' : '#22863a', fontWeight: 500 }}>
                   {isSyncing ? 'Syncing' : 'Connected'}
                 </span>
               </div>
 
               {/* Sync button */}
-              <button
-                onClick={() => handleSync(idx)}
-                style={{
-                  background: 'none',
-                  border: '1px solid #EF7C00',
-                  color: '#EF7C00',
-                  borderRadius: 6,
-                  padding: '5px 12px',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  transition: 'all 0.2s',
-                }}
-              >
-                Sync now
-              </button>
+              <div style={{ textAlign: 'right' }}>
+                <button
+                  onClick={() => handleSync(idx)}
+                  disabled={isSyncing}
+                  style={{
+                    background: 'none',
+                    border: '1px solid ' + (isSyncing ? '#e2e2de' : '#EF7C00'),
+                    borderRadius: 6,
+                    padding: '5px 12px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: isSyncing ? '#9ca3af' : '#EF7C00',
+                    cursor: isSyncing ? 'default' : 'pointer',
+                    fontFamily: font,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {isSyncing ? 'Syncing...' : 'Sync now'}
+                </button>
+              </div>
             </div>
           );
         })}
@@ -196,20 +178,20 @@ export default function DataOrchestrator() {
       <div
         style={{
           display: 'flex',
+          justifyContent: 'center',
           gap: 32,
-          marginTop: 20,
-          paddingTop: 16,
-          borderTop: '1px solid #f0f0ec',
+          marginTop: 16,
+          padding: '12px 0',
         }}
       >
         {[
-          { label: 'Total records', value: '24,891' },
-          { label: 'Active sources', value: '3 / 3' },
-          { label: 'Metrics tracked', value: '10' },
+          { label: 'Records processed', value: '24,891' },
+          { label: 'Active sources', value: '3' },
+          { label: 'Metrics tracked', value: '8' },
         ].map((stat) => (
-          <div key={stat.label}>
-            <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 500 }}>{stat.label}</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#003D7C', marginTop: 2 }}>{stat.value}</div>
+          <div key={stat.label} style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a' }}>{stat.value}</div>
+            <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>{stat.label}</div>
           </div>
         ))}
       </div>

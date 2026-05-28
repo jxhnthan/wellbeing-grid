@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { departments, metrics } from './departmentData';
+import { departments, metrics } from './stateData';
 
 const ranked = departments
   .map((d) => {
@@ -45,29 +45,23 @@ const severityConfig = {
 export default function Insights() {
   const [expandedIdx, setExpandedIdx] = useState(null);
 
+  const font = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
   return (
-    <div
-      style={{
-        maxWidth: 800,
-        margin: '0 auto',
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-      }}
-    >
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: '#003D7C', letterSpacing: '-0.02em' }}>
-          Predictive Insights
-        </div>
-        <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>
-          Risk signals based on cross-source analysis
-        </div>
+    <div style={{ maxWidth: 800, margin: '0 auto', fontFamily: font }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: '#1a1a1a', letterSpacing: '-0.02em', marginBottom: 2 }}>
+        Predictive Insights
+      </div>
+      <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 28 }}>
+        Risk signals based on cross-source analysis
       </div>
 
-      {/* Summary bar — single card, three sections */}
+      {/* Summary bar */}
       <div
         style={{
           display: 'flex',
           background: '#fff',
-          border: '1px solid #e8e8e4',
+          border: '1px solid #e2e2de',
           borderRadius: 10,
           marginBottom: 24,
           overflow: 'hidden',
@@ -82,223 +76,140 @@ export default function Insights() {
             key={item.label}
             style={{
               flex: 1,
-              padding: '18px 24px',
-              borderRight: idx < 2 ? '1px solid #f0f0ec' : 'none',
+              padding: '16px 20px',
               display: 'flex',
               alignItems: 'center',
-              gap: 14,
+              gap: 12,
+              borderRight: idx < 2 ? '1px solid #f3f4f6' : 'none',
             }}
           >
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                background: item.color,
-                flexShrink: 0,
-              }}
-            />
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>{item.label}</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: item.color, marginTop: 2 }}>{item.count}</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#1a1a1a' }}>{item.count}</div>
+              <div style={{ fontSize: 11, color: '#9ca3af' }}>{item.label}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        {/* Left — Department ranking as a table */}
-        <div
-          style={{
-            background: '#fff',
-            border: '1px solid #e8e8e4',
-            borderRadius: 10,
-            padding: '20px',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: '#9ca3af',
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              marginBottom: 12,
-            }}
-          >
-            Departments ranked by risk
-          </div>
-
-          {/* Column headers */}
+      {/* Two columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'start' }}>
+        {/* Left — Department ranking */}
+        <div style={{ background: '#fff', border: '1px solid #e2e2de', borderRadius: 10, overflow: 'hidden' }}>
+          {/* Table header */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: '24px 1fr 80px 36px',
-              gap: 8,
-              padding: '6px 0',
-              borderBottom: '1px solid #f0f0ec',
-              marginBottom: 4,
+              gridTemplateColumns: '28px 1fr 100px 40px',
+              padding: '10px 16px',
+              borderBottom: '1px solid #f3f4f6',
+              background: '#fafaf8',
             }}
           >
-            <span style={{ fontSize: 10, color: '#b0b0b0', fontWeight: 500 }}>#</span>
-            <span style={{ fontSize: 10, color: '#b0b0b0', fontWeight: 500 }}>Dept</span>
-            <span style={{ fontSize: 10, color: '#b0b0b0', fontWeight: 500 }}>Wellbeing</span>
-            <span style={{ fontSize: 10, color: '#b0b0b0', fontWeight: 500, textAlign: 'right' }}>Score</span>
+            <span style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>#</span>
+            <span style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Department</span>
+            <span style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Wellbeing</span>
+            <span style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'right' }}>Score</span>
           </div>
 
           {/* Rows */}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {ranked.slice(0, 10).map((dept, idx) => {
-              const barColor = dept.composite < 45 ? '#cf222e' : dept.composite < 65 ? '#d97706' : '#22863a';
-              return (
-                <div
-                  key={dept.abbr}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '24px 1fr 80px 36px',
-                    gap: 8,
-                    padding: '8px 0',
-                    borderBottom: idx < 9 ? '1px solid #fafaf8' : 'none',
-                    alignItems: 'center',
-                  }}
-                >
-                  <span style={{ fontSize: 11, color: '#b0b0b0', fontWeight: 500 }}>{idx + 1}</span>
-                  <div>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: '#1a1a1a' }}>{dept.abbr}</span>
-                    <span style={{ fontSize: 10, color: '#b0b0b0', marginLeft: 6 }}>{dept.fullName}</span>
-                  </div>
-                  <div style={{ height: 4, borderRadius: 2, background: '#f3f4f6' }}>
-                    <div
-                      style={{
-                        height: 4,
-                        borderRadius: 2,
-                        width: dept.composite + '%',
-                        background: barColor,
-                      }}
-                    />
-                  </div>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: barColor, textAlign: 'right' }}>
-                    {dept.composite}
-                  </span>
+          {ranked.slice(0, 10).map((dept, idx) => {
+            const barColor = dept.composite < 45 ? '#cf222e' : dept.composite < 65 ? '#d97706' : '#22863a';
+            return (
+              <div
+                key={dept.abbr}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '28px 1fr 100px 40px',
+                  padding: '10px 16px',
+                  alignItems: 'center',
+                  borderBottom: idx < 9 ? '1px solid #f9f9f7' : 'none',
+                  transition: 'background 0.15s',
+                  cursor: 'default',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#fafaf8'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
+              >
+                <span style={{ fontSize: 11, color: '#c8c8c4', fontWeight: 600 }}>{idx + 1}</span>
+                <div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#1a1a1a' }}>{dept.abbr}</span>
+                  <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 8 }}>{dept.fullName}</span>
                 </div>
-              );
-            })}
-          </div>
+                <div style={{ height: 4, borderRadius: 2, background: '#f3f4f6' }}>
+                  <div style={{ height: 4, borderRadius: 2, width: dept.composite + '%', background: barColor }} />
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: barColor, textAlign: 'right' }}>{dept.composite}</span>
+              </div>
+            );
+          })}
         </div>
 
         {/* Right — Prediction signals */}
-        <div>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: '#9ca3af',
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              marginBottom: 12,
-            }}
-          >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>
             Prediction signals
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {predictions.map((pred, idx) => {
-              const s = severityConfig[pred.severity];
-              const isExpanded = expandedIdx === idx;
+          {predictions.map((pred, idx) => {
+            const s = severityConfig[pred.severity];
+            const isExpanded = expandedIdx === idx;
 
-              return (
-                <div
-                  key={idx}
-                  onClick={() => setExpandedIdx(isExpanded ? null : idx)}
-                  style={{
-                    background: '#fff',
-                    border: '1px solid #e8e8e4',
-                    borderRadius: 10,
-                    padding: '16px 18px',
-                    cursor: 'pointer',
-                    transition: 'border-color 0.2s',
-                  }}
-                >
-                  {/* Header row */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flex: 1 }}>
-                      <div
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          background: s.dot,
-                          marginTop: 5,
-                          flexShrink: 0,
-                        }}
-                      />
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', lineHeight: 1.4 }}>
-                          {pred.title}
-                        </div>
-                        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, lineHeight: 1.5 }}>
-                          {pred.description}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 12, flexShrink: 0 }}>
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 600,
-                          color: s.dot,
-                          background: s.bg,
-                          padding: '3px 8px',
-                          borderRadius: 4,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {s.label}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 12,
-                          color: '#9ca3af',
-                          transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)',
-                          transition: 'transform 0.2s',
-                          display: 'inline-block',
-                        }}
-                      >
-                        &#9662;
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Expanded action */}
-                  {isExpanded && (
-                    <div
-                      style={{
-                        marginTop: 14,
-                        paddingTop: 14,
-                        borderTop: '1px solid #f3f4f6',
-                        marginLeft: 18,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 600,
-                          color: '#9ca3af',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.06em',
-                          marginBottom: 6,
-                        }}
-                      >
-                        Recommended action
-                      </div>
-                      <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{pred.action}</div>
-                    </div>
-                  )}
+            return (
+              <div
+                key={idx}
+                onClick={() => setExpandedIdx(isExpanded ? null : idx)}
+                style={{
+                  background: '#fff',
+                  border: '1px solid ' + (isExpanded ? '#003D7C' : '#e2e2de'),
+                  borderRadius: 10,
+                  padding: '14px 16px',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.2s',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: s.dot,
+                      background: s.bg,
+                      padding: '2px 8px',
+                      borderRadius: 4,
+                    }}
+                  >
+                    {s.label}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: '#9ca3af',
+                      transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s',
+                      display: 'inline-block',
+                    }}
+                  >
+                    ▾
+                  </span>
                 </div>
-              );
-            })}
-          </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', lineHeight: 1.4, marginBottom: 4 }}>
+                  {pred.title}
+                </div>
+                <div style={{ fontSize: 11, color: '#9ca3af', lineHeight: 1.5 }}>
+                  {pred.description}
+                </div>
+
+                {isExpanded && (
+                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f3f4f6' }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                      Recommended action
+                    </div>
+                    <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>{pred.action}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
