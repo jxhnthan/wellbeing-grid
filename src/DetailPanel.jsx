@@ -1,149 +1,201 @@
-import React from "react";
-import { departments, metrics } from "./departmentData";
+import React from 'react';
+import { departments, wellbeingMetrics, hrMetrics } from './stateData';
 
-const wellbeingMetrics = [
-  { key: "satisfaction", label: "Satisfaction" },
-  { key: "engagement", label: "Engagement" },
-  { key: "workload", label: "Workload" },
-  { key: "burnout", label: "Burnout risk" },
-  { key: "support", label: "Support access" },
-];
-
-const getBarColor = (key, val) => {
-  const inverse = key === "workload" || key === "burnout";
-  const effective = inverse ? 100 - val : val;
-  if (effective >= 70) return "#22863a";
-  if (effective >= 45) return "#9ca3af";
-  return "#cf222e";
+const wellbeingLabels = {
+  satisfaction: 'Satisfaction',
+  engagement: 'Engagement',
+  workload: 'Workload',
+  burnout: 'Burnout risk',
+  support: 'Support access',
 };
 
-const getStatus = (key, val) => {
-  const inverse = key === "workload" || key === "burnout";
-  const effective = inverse ? 100 - val : val;
-  if (effective >= 70) return { text: "Good", color: "#22863a" };
-  if (effective >= 45) return { text: "Moderate", color: "#9ca3af" };
-  return { text: "Attention", color: "#cf222e" };
+const hrLabels = {
+  performanceRating: { label: 'Performance rating', suffix: ' / 5.0' },
+  medicalLeaveDays: { label: 'Avg medical leave', suffix: ' days' },
+  salaryBand: { label: 'Salary band', suffix: '' },
+  turnoverRate: { label: 'Turnover rate', suffix: '%' },
+  headcount: { label: 'Headcount', suffix: '' },
 };
+
+const isInverse = { workload: true, burnout: true };
+
+function barColor(key, value) {
+  const inv = isInverse[key];
+  if (inv) {
+    if (value >= 60) return '#ef4444';
+    if (value >= 40) return '#9ca3af';
+    return '#22c55e';
+  }
+  if (value >= 70) return '#22c55e';
+  if (value >= 45) return '#9ca3af';
+  return '#ef4444';
+}
+
+function statusLabel(key, value) {
+  const inv = isInverse[key];
+  if (inv) {
+    if (value >= 60) return 'High';
+    if (value >= 40) return 'Moderate';
+    return 'Low';
+  }
+  if (value >= 70) return 'Good';
+  if (value >= 45) return 'Moderate';
+  return 'Low';
+}
 
 export default function DetailPanel({ abbr, onClose }) {
   if (!abbr) return null;
-  const dept = departments.find((d) => d.abbr === abbr);
-  const m = metrics[abbr];
-  if (!dept || !m) return null;
 
-  const composite = Math.round(
-    (m.satisfaction + m.engagement + (100 - m.workload) + (100 - m.burnout) + m.support) / 5
-  );
+  const dept = departments.find((d) => d.abbr === abbr);
+  const wm = wellbeingMetrics[abbr];
+  const hr = hrMetrics[abbr];
+  if (!dept || !wm || !hr) return null;
 
   return (
     <div
       style={{
-        maxWidth: 800,
-        margin: "24px auto 0",
-        background: "#fff",
-        border: "1px solid #e5e7eb",
+        maxWidth: 720,
+        margin: '32px auto 0',
+        background: '#fff',
+        border: '1px solid #e5e7eb',
         borderRadius: 12,
-        padding: "28px 32px",
+        padding: '28px 32px',
       }}
     >
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: 24,
+        }}
+      >
         <div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#003D7C" }}>{dept.fullName}</div>
-          <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2, textTransform: "capitalize" }}>
-            {dept.category} — {m.headcount} staff
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#003D7C' }}>
+            {dept.fullName}
+          </div>
+          <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
+            {dept.abbr} — {dept.category.charAt(0).toUpperCase() + dept.category.slice(1)}
           </div>
         </div>
         <button
           onClick={onClose}
           style={{
-            background: "none",
-            border: "none",
+            background: 'none',
+            border: 'none',
             fontSize: 18,
-            color: "#9ca3af",
-            cursor: "pointer",
-            padding: "4px 8px",
+            color: '#9ca3af',
+            cursor: 'pointer',
+            padding: '0 4px',
             lineHeight: 1,
           }}
         >
-          ×
+          x
         </button>
       </div>
 
-      {/* Two columns */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
-        {/* Left — Wellbeing */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
+        {/* Wellbeing column */}
         <div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: '#9ca3af',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: 16,
+            }}
+          >
             Wellbeing metrics
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {wellbeingMetrics.map(({ key, label }) => {
-              const status = getStatus(key, m[key]);
-              return (
-                <div key={key}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontSize: 13, color: "#374151" }}>{label}</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>{m[key]}</span>
-                      <span style={{ fontSize: 10, color: status.color, fontWeight: 600 }}>{status.text}</span>
-                    </div>
-                  </div>
-                  <div style={{ height: 6, borderRadius: 3, background: "#f3f4f6" }}>
-                    <div
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {Object.keys(wellbeingLabels).map((key) => (
+              <div key={key}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 4,
+                  }}
+                >
+                  <span style={{ fontSize: 13, color: '#374151' }}>
+                    {wellbeingLabels[key]}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>
+                      {wm[key]}
+                    </span>
+                    <span
                       style={{
-                        height: 6,
-                        borderRadius: 3,
-                        width: `${m[key]}%`,
-                        background: getBarColor(key, m[key]),
+                        fontSize: 10,
+                        color: barColor(key, wm[key]),
+                        fontWeight: 500,
                       }}
-                    />
+                    >
+                      {statusLabel(key, wm[key])}
+                    </span>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Right — HR Data */}
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
-            HR data
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {[
-              { label: "Performance rating", value: `${m.performanceRating} / 5.0` },
-              { label: "Avg medical leave", value: `${m.medicalLeaveDays} days / yr` },
-              { label: "Salary band", value: m.salaryBand },
-              { label: "Turnover rate", value: `${m.turnoverRate}%` },
-              { label: "Headcount", value: m.headcount },
-            ].map((item) => (
-              <div
-                key={item.label}
-                style={{ display: "flex", justifyContent: "space-between", paddingBottom: 10, borderBottom: "1px solid #f3f4f6" }}
-              >
-                <span style={{ fontSize: 13, color: "#6b7280" }}>{item.label}</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>{item.value}</span>
+                <div
+                  style={{
+                    height: 6,
+                    backgroundColor: '#f3f4f6',
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: wm[key] + '%',
+                      backgroundColor: barColor(key, wm[key]),
+                      borderRadius: 3,
+                    }}
+                  />
+                </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Composite */}
-      <div
-        style={{
-          marginTop: 24,
-          padding: "14px 20px",
-          background: "#f8f9fa",
-          borderRadius: 8,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}>Composite wellbeing score</span>
-        <span style={{ fontSize: 24, fontWeight: 700, color: "#003D7C" }}>{composite}</span>
+        {/* HR column */}
+        <div>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: '#9ca3af',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: 16,
+            }}
+          >
+            HR data
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {Object.keys(hrLabels).map((key) => (
+              <div
+                key={key}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingBottom: 12,
+                  borderBottom: '1px solid #f3f4f6',
+                }}
+              >
+                <span style={{ fontSize: 13, color: '#374151' }}>
+                  {hrLabels[key].label}
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a' }}>
+                  {hr[key]}{hrLabels[key].suffix}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

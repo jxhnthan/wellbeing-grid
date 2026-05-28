@@ -1,28 +1,39 @@
-import React from "react";
-
-const items = [
-  { label: "Faculty", color: "#003D7C" },
-  { label: "School", color: "#1a5a9a" },
-  { label: "Department", color: "#3574b0" },
-  { label: "Research", color: "#6a9dc8" },
-  { label: "Admin", color: "#9bbdd9" },
-  { label: "Support", color: "#c4d8ea" },
-];
+import React from 'react';
+import { categoryColors, categoryLabels } from './stateData';
 
 export default function Legend() {
+  const categories = Object.keys(categoryColors);
+
   return (
-    <div style={{ display: "flex", gap: 20, justifyContent: "center", marginTop: 24 }}>
-      {items.map((item) => (
-        <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 24,
+        marginTop: 32,
+        flexWrap: 'wrap',
+      }}
+    >
+      {categories.map((cat) => (
+        <div
+          key={cat}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
           <div
             style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: item.color,
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              backgroundColor: categoryColors[cat],
             }}
           />
-          <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 500 }}>{item.label}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>
+            {categoryLabels[cat]}
+          </span>
         </div>
       ))}
     </div>

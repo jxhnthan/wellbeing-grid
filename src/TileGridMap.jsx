@@ -1,27 +1,27 @@
-import React from "react";
-import { departments } from "./departmentData";
-import DeptTile from "./DeptTile";
+import React from 'react';
+import StateTile from './StateTile';
+import { departments } from './stateData';
 
-export default function TileGridMap({ selected, onHover, onLeave, onClick }) {
+export default function TileGridMap({ selected, hovered, onHover, onLeave, onClick }) {
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(9, 1fr)",
-        gridTemplateRows: "repeat(7, 1fr)",
-        gap: 5,
-        maxWidth: 640,
-        margin: "0 auto",
+        display: 'grid',
+        gridTemplateColumns: 'repeat(9, 1fr)',
+        gridTemplateRows: 'repeat(7, 1fr)',
+        gap: 6,
+        maxWidth: 560,
+        margin: '0 auto',
       }}
     >
       {departments.map((dept) => (
-        <DeptTile
+        <StateTile
           key={dept.abbr}
           dept={dept}
-          isSelected={selected === dept.abbr}
-          onHover={(e) => onHover(dept, e)}
+          isSelected={selected === dept.abbr || hovered === dept.abbr}
+          onHover={onHover}
           onLeave={onLeave}
-          onClick={() => onClick(dept.abbr)}
+          onClick={onClick}
         />
       ))}
     </div>

@@ -1,38 +1,38 @@
-import React, { useState } from "react";
+import React from 'react';
+import { categoryColors } from './stateData';
 
-export default function StateTile({ abbr, color, onClick }) {
-  const [hovered, setHovered] = useState(false);
-
-  // Determine text color based on background brightness
-  const isLight = [4, 5].includes(color.tier);
-  const textColor = isLight ? "#1a4a38" : "#ffffff";
+export default function StateTile({ dept, isSelected, onHover, onLeave, onClick }) {
+  const bg = categoryColors[dept.category];
 
   return (
     <div
-      onClick={() => onClick?.(abbr)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => onHover(dept.abbr)}
+      onMouseLeave={onLeave}
+      onClick={() => onClick(dept.abbr)}
       style={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: color.hex,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 4,
-        cursor: "pointer",
-        fontSize: 14,
-        fontWeight: 700,
-        color: textColor,
-        transition: "transform 0.15s ease, box-shadow 0.15s ease",
-        transform: hovered ? "scale(1.1)" : "scale(1)",
-        boxShadow: hovered
-          ? "0 4px 12px rgba(0, 0, 0, 0.25)"
-          : "none",
-        userSelect: "none",
+        gridRow: dept.row + 1,
+        gridColumn: dept.col + 1,
+        backgroundColor: bg,
+        borderRadius: 6,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: '0.05em',
+        color: '#fff',
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        transform: isSelected ? 'translateY(-2px)' : 'none',
+        boxShadow: isSelected
+          ? '0 4px 12px rgba(0, 61, 124, 0.25)'
+          : '0 1px 3px rgba(0, 0, 0, 0.06)',
+        border: isSelected ? '2px solid #EF7C00' : '2px solid transparent',
+        aspectRatio: '1',
+        userSelect: 'none',
       }}
     >
-      {abbr}
+      {dept.abbr}
     </div>
   );
 }
