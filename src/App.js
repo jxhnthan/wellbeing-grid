@@ -9,7 +9,7 @@ import DataFlow from './DataFlow';
 import Insights from './Insights';
 
 const tabs = [
-  { id: 'grid', label: 'Wellbeing Grid' },
+  { id: 'grid', label: 'Dashboard' },
   { id: 'sources', label: 'Data Sources' },
   { id: 'flow', label: 'Data Flow' },
   { id: 'insights', label: 'Insights' },
@@ -18,100 +18,97 @@ const tabs = [
 export default function App() {
   const [activeTab, setActiveTab] = useState('grid');
   const [hoveredDept, setHoveredDept] = useState(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [selectedDept, setSelectedDept] = useState(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  const handleHover = (dept, e) => {
-    setHoveredDept(dept);
-    setTooltipPos({ x: e.clientX, y: e.clientY });
-  };
+  const handleHover = (dept) => setHoveredDept(dept);
+  const handleLeave = () => setHoveredDept(null);
+  const handleClick = (dept) => setSelectedDept(selectedDept?.abbr === dept.abbr ? null : dept);
 
-  const handleMouseMove = (e) => {
-    if (hoveredDept) {
-      setTooltipPos({ x: e.clientX, y: e.clientY });
-    }
-  };
+  const handleMouseMove = (e) => setMousePos({ x: e.clientX, y: e.clientY });
 
   return (
-    <div style={{ minHeight: '100vh', padding: '48px 32px' }} onMouseMove={handleMouseMove}>
+    <div style={{ minHeight: '100vh', background: '#f7f7f5' }} onMouseMove={handleMouseMove}>
       {/* Header */}
-      <div style={{ maxWidth: 820, margin: '0 auto 36px' }}>
-        <h1
-          style={{
-            fontSize: 24,
-            fontWeight: 700,
-            color: '#003D7C',
-            letterSpacing: '-0.03em',
-            marginBottom: 4,
-          }}
-        >
-          Wellbeing Grid
-        </h1>
-        <p style={{ fontSize: 14, color: '#9ca3af', fontWeight: 400 }}>
-          Live predictive wellbeing workflow across NUS departments
-        </p>
-      </div>
-
-      {/* Tab bar */}
       <div
         style={{
-          maxWidth: 820,
-          margin: '0 auto 32px',
-          display: 'flex',
-          gap: 4,
-          background: '#efefe9',
-          padding: 4,
-          borderRadius: 10,
-          width: 'fit-content',
+          maxWidth: 900,
+          margin: '0 auto',
+          padding: '40px 32px 0',
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         }}
       >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => {
-              setActiveTab(tab.id);
-              setSelectedDept(null);
-              setHoveredDept(null);
-            }}
+        <div style={{ marginBottom: 8 }}>
+          <h1
             style={{
-              padding: '8px 18px',
-              borderRadius: 7,
-              border: 'none',
-              background: activeTab === tab.id ? '#ffffff' : 'transparent',
-              color: activeTab === tab.id ? '#003D7C' : '#9ca3af',
-              fontSize: 13,
-              fontWeight: activeTab === tab.id ? 600 : 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              boxShadow: activeTab === tab.id ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontSize: 22,
+              fontWeight: 700,
+              color: '#003D7C',
+              margin: 0,
+              letterSpacing: '-0.03em',
             }}
           >
-            {tab.label}
-          </button>
-        ))}
+            Wellbeing Grid
+          </h1>
+          <p style={{ fontSize: 14, color: '#9ca3af', margin: '4px 0 0', fontWeight: 400 }}>
+            NUS department wellbeing at a glance
+          </p>
+        </div>
+
+        {/* Tab bar */}
+        <div
+          style={{
+            display: 'inline-flex',
+            background: '#efefe9',
+            borderRadius: 8,
+            padding: 3,
+            marginTop: 16,
+            marginBottom: 28,
+          }}
+        >
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                background: activeTab === tab.id ? '#fff' : 'transparent',
+                border: 'none',
+                borderRadius: 6,
+                padding: '7px 16px',
+                fontSize: 13,
+                fontWeight: activeTab === tab.id ? 600 : 400,
+                color: activeTab === tab.id ? '#003D7C' : '#9ca3af',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all 0.15s',
+                boxShadow: activeTab === tab.id ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Content */}
-      {activeTab === 'grid' && (
-        <div>
-          <TileGridMap
-            selectedDept={selectedDept}
-            onHover={handleHover}
-            onLeave={() => setHoveredDept(null)}
-            onClick={(dept) => setSelectedDept(selectedDept?.abbr === dept.abbr ? null : dept)}
-          />
-          <div style={{ maxWidth: 820, margin: '0 auto' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px 60px' }}>
+        {activeTab === 'grid' && (
+          <>
+            <TileGridMap
+              selectedDept={selectedDept}
+              onHover={handleHover}
+              onLeave={handleLeave}
+              onClick={handleClick}
+            />
             <Legend />
-          </div>
-          <Tooltip dept={hoveredDept} position={tooltipPos} />
-          <DetailPanel dept={selectedDept} onClose={() => setSelectedDept(null)} />
-        </div>
-      )}
-
-      {activeTab === 'sources' && <DataOrchestrator />}
-      {activeTab === 'flow' && <DataFlow />}
-      {activeTab === 'insights' && <Insights />}
+            <Tooltip dept={hoveredDept} mousePos={mousePos} />
+            <DetailPanel dept={selectedDept} onClose={() => setSelectedDept(null)} />
+          </>
+        )}
+        {activeTab === 'sources' && <DataOrchestrator />}
+        {activeTab === 'flow' && <DataFlow />}
+        {activeTab === 'insights' && <Insights />}
+      </div>
     </div>
   );
 }

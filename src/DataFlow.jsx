@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 
 const sources = [
-  { id: 'engagement', label: 'Employee Engagement Surveys', y: 50 },
-  { id: 'hr', label: 'HR & Organisational Data', y: 160 },
-  { id: 'operational', label: 'Operational & Behavioural Data', y: 270 },
+  { id: 'engagement', label: 'Employee Engagement Surveys', y: 55 },
+  { id: 'hr', label: 'HR & Organisational Data', y: 165 },
+  { id: 'operational', label: 'Operational & Behavioural Data', y: 275 },
 ];
 
 const steps = [
@@ -23,58 +23,78 @@ export default function DataFlow() {
     return () => clearInterval(interval);
   }, []);
 
-  const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-
-  // Layout: sources on LEFT, engine on RIGHT
+  // Sources on the LEFT, engine on the RIGHT
   const sourceX = 40;
   const sourceW = 240;
   const sourceH = 50;
-  const engineX = 620;
-  const engineY = 120;
-  const engineW = 180;
+
+  const engineX = 640;
+  const engineY = 125;
+  const engineW = 170;
   const engineH = 90;
 
   return (
     <div
       style={{
-        maxWidth: 820,
+        maxWidth: 900,
         margin: '0 auto',
-        background: '#ffffff',
+        background: '#fff',
         border: '1px solid #e8e8e4',
-        borderRadius: 14,
+        borderRadius: 12,
         padding: '28px 32px',
-        fontFamily: font,
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       }}
     >
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 16, fontWeight: 650, color: '#003D7C', letterSpacing: '-0.01em' }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: '#003D7C', letterSpacing: '-0.02em' }}>
           Data Flow
         </div>
-        <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 3 }}>
+        <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>
           How data moves from institutional sources into the Wellbeing Engine
         </div>
       </div>
 
       <svg viewBox="0 0 860 340" style={{ width: '100%', height: 'auto' }}>
         <defs>
-          <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-            <polygon points="0 0, 8 3, 0 6" fill="#EF7C00" />
+          <marker
+            id="arrowOrange"
+            markerWidth="8"
+            markerHeight="6"
+            refX="8"
+            refY="3"
+            orient="auto"
+          >
+            <path d="M0,0 L8,3 L0,6" fill="#EF7C00" />
           </marker>
-          <marker id="arrowGrey" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-            <polygon points="0 0, 8 3, 0 6" fill="#d1d5db" />
+          <marker
+            id="arrowGrey"
+            markerWidth="8"
+            markerHeight="6"
+            refX="8"
+            refY="3"
+            orient="auto"
+          >
+            <path d="M0,0 L8,3 L0,6" fill="#d1d5db" />
           </marker>
         </defs>
 
         {/* Engine box — RIGHT side */}
-        <rect x={engineX} y={engineY} width={engineW} height={engineH} rx={10} fill="#003D7C" />
+        <rect
+          x={engineX}
+          y={engineY}
+          width={engineW}
+          height={engineH}
+          rx={8}
+          fill="#003D7C"
+        />
         <text
           x={engineX + engineW / 2}
           y={engineY + 38}
           textAnchor="middle"
-          fill="#ffffff"
+          fill="#fff"
           fontSize={14}
           fontWeight={700}
-          fontFamily={font}
+          fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
         >
           Wellbeing Engine
         </text>
@@ -82,19 +102,20 @@ export default function DataFlow() {
           x={engineX + engineW / 2}
           y={engineY + 56}
           textAnchor="middle"
-          fill="rgba(255,255,255,0.5)"
-          fontSize={11}
-          fontFamily={font}
+          fill="rgba(255,255,255,0.55)"
+          fontSize={10}
+          fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
         >
           NUS Platform
         </text>
 
-        {/* Source cards and paths */}
+        {/* Source cards and paths — sources on LEFT flowing to engine on RIGHT */}
         {sources.map((source, i) => {
           const isActive = activeIndex === i;
+
           const sy = source.y;
 
-          // Path: from RIGHT edge of source card -> to LEFT edge of engine
+          // Path: from right edge of source card → to left edge of engine
           const startX = sourceX + sourceW;
           const startY = sy + sourceH / 2;
           const endX = engineX;
@@ -102,9 +123,8 @@ export default function DataFlow() {
           const cp1x = startX + 120;
           const cp2x = endX - 120;
 
-          // Animation path: source -> engine (LEFT to RIGHT)
-          const animPath =
-            'M ' + startX + ' ' + startY +
+          // Path goes LEFT to RIGHT (source → engine)
+          const pathD = 'M ' + startX + ' ' + startY +
             ' C ' + cp1x + ' ' + startY +
             ' ' + cp2x + ' ' + endY +
             ' ' + endX + ' ' + endY;
@@ -113,19 +133,23 @@ export default function DataFlow() {
             <g key={source.id}>
               {/* Connection line */}
               <path
-                d={animPath}
+                d={pathD}
                 fill="none"
-                stroke={isActive ? '#EF7C00' : '#e5e7eb'}
-                strokeWidth={isActive ? 2 : 1}
+                stroke={isActive ? '#EF7C00' : '#d1d5db'}
+                strokeWidth={isActive ? 2.5 : 1}
                 strokeDasharray={isActive ? 'none' : '6 4'}
                 markerEnd={isActive ? 'url(#arrowOrange)' : 'url(#arrowGrey)'}
                 style={{ transition: 'stroke 0.4s, stroke-width 0.4s' }}
               />
 
-              {/* Animated dot — flows from source to engine */}
+              {/* Animated dot — flows from source to engine (left to right) */}
               {isActive && (
                 <circle r={4} fill="#EF7C00">
-                  <animateMotion dur="1.8s" repeatCount="indefinite" path={animPath} />
+                  <animateMotion
+                    dur="1.8s"
+                    repeatCount="indefinite"
+                    path={pathD}
+                  />
                 </circle>
               )}
 
@@ -135,8 +159,8 @@ export default function DataFlow() {
                 y={sy}
                 width={sourceW}
                 height={sourceH}
-                rx={8}
-                fill={isActive ? '#ffffff' : '#fafaf8'}
+                rx={6}
+                fill={isActive ? '#fff' : '#fafaf8'}
                 stroke={isActive ? '#003D7C' : '#e8e8e4'}
                 strokeWidth={isActive ? 1.5 : 1}
                 style={{ transition: 'all 0.3s' }}
@@ -148,7 +172,7 @@ export default function DataFlow() {
                 fill={isActive ? '#003D7C' : '#6b7280'}
                 fontSize={12}
                 fontWeight={isActive ? 600 : 500}
-                fontFamily={font}
+                fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
               >
                 {source.label}
               </text>
@@ -164,15 +188,21 @@ export default function DataFlow() {
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: 16,
           marginTop: 8,
-          borderTop: '1px solid #f3f3ef',
+          borderTop: '1px solid #f0f0ec',
           paddingTop: 24,
         }}
       >
         {steps.map((step) => (
           <div key={step.num} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 10, color: '#EF7C00', fontWeight: 600, marginBottom: 4 }}>{step.num}</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{step.title}</div>
-            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{step.desc}</div>
+            <div style={{ fontSize: 10, color: '#EF7C00', fontWeight: 600, marginBottom: 4 }}>
+              {step.num}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>
+              {step.title}
+            </div>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
+              {step.desc}
+            </div>
           </div>
         ))}
       </div>
