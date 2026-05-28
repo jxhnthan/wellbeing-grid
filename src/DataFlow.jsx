@@ -90,23 +90,30 @@ export default function DataFlow() {
           const sy = source.y;
           const isActive = activeIndex === i;
 
-          const startX = engineX + engineW;
-          const startY = engineY + engineH / 2;
-          const endX = sx;
-          const endY = sy + sourceH / 2;
-          const cp1x = startX + 100;
-          const cp2x = endX - 100;
+          const engineEdgeX = engineX + engineW;
+          const engineEdgeY = engineY + engineH / 2;
+          const sourceEdgeX = sx;
+          const sourceEdgeY = sy + sourceH / 2;
+          const cp1x = sourceEdgeX - 100;
+          const cp2x = engineEdgeX + 100;
 
-          const pathD = 'M ' + startX + ' ' + startY +
-            ' C ' + cp1x + ' ' + startY +
-            ' ' + cp2x + ' ' + endY +
-            ' ' + endX + ' ' + endY;
+          /* Path goes from SOURCE → ENGINE (right to left) */
+          const pathD = 'M ' + sourceEdgeX + ' ' + sourceEdgeY +
+            ' C ' + cp1x + ' ' + sourceEdgeY +
+            ' ' + cp2x + ' ' + engineEdgeY +
+            ' ' + engineEdgeX + ' ' + engineEdgeY;
+
+          /* Visual line drawn from engine to source (for consistent curve shape) */
+          const linePath = 'M ' + engineEdgeX + ' ' + engineEdgeY +
+            ' C ' + cp2x + ' ' + engineEdgeY +
+            ' ' + cp1x + ' ' + sourceEdgeY +
+            ' ' + sourceEdgeX + ' ' + sourceEdgeY;
 
           return (
             <g key={source.id}>
-              {/* Connection line */}
+              {/* Connection line (drawn left to right for visual consistency) */}
               <path
-                d={pathD}
+                d={linePath}
                 fill="none"
                 stroke={isActive ? '#EF7C00' : '#d1d5db'}
                 strokeWidth={isActive ? 2 : 1}
@@ -114,7 +121,7 @@ export default function DataFlow() {
                 style={{ transition: 'stroke 0.4s, stroke-width 0.4s' }}
               />
 
-              {/* Animated dot */}
+              {/* Animated dot — follows path FROM source TO engine */}
               {isActive && (
                 <circle r={4} fill="#EF7C00">
                   <animateMotion
@@ -123,6 +130,18 @@ export default function DataFlow() {
                     path={pathD}
                   />
                 </circle>
+              )}
+
+              {/* Arrow head pointing at engine */}
+              {isActive && (
+                <polygon
+                  points={
+                    (engineEdgeX + 1) + ',' + (engineEdgeY) + ' ' +
+                    (engineEdgeX + 10) + ',' + (engineEdgeY - 5) + ' ' +
+                    (engineEdgeX + 10) + ',' + (engineEdgeY + 5)
+                  }
+                  fill="#EF7C00"
+                />
               )}
 
               {/* Source card */}
